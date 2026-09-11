@@ -1,0 +1,69 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "hono-open-api-starter",
+	"main": "src/worker.ts",
+	"compatibility_date": "2026-04-15",
+	"compatibility_flags": ["nodejs_compat"],
+	"keep_vars": true,
+	// Daily off-peak cleanup — deletes expired/stale rows from refresh_tokens
+	// and verifications (see src/scheduled/prune-stale-auth-records.ts). Time
+	// is arbitrary (03:07 UTC); avoiding :00 just dodges the top-of-hour rush
+	// most crons fire at.
+	"triggers": {
+		"crons": ["7 3 * * *"]
+	},
+	// Cap CPU per invocation. Password hashing + a DB transaction is well under
+	// a second; this bounds the cost of a runaway request (paid default is 30s).
+	"limits": {
+		"cpu_ms": 10000
+	},
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 1
+	},
+	// id must reference a Hyperdrive config that already exists in your
+	// account (`wrangler hyperdrive create <name> --connection-string=...`) —
+	// it is NOT an arbitrary value. `bun run deploy` checks this for you
+	// (see src/scripts/check-deploy-config.ts) and fails loudly if it's stale.
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "c37f35a85b3c4157b5393d2eb6d747a0"
+		}
+	],
+	// bucket_name must reference a bucket that already exists
+	// (`wrangler r2 bucket create <name>`) — also checked by `bun run deploy`.
+	"r2_buckets": [
+		{
+			"binding": "R2_BUCKET",
+			"bucket_name": "tally-cloud-backend"
+		}
+	],
+	// Email Sending binding — used by src/utility/email.ts for OTP / password-reset mail.
+	// The sending domain must be onboarded first: `wrangler email sending enable <domain>`
+	// (the `from` in src/utility/email.ts must use that verified domain).
+	"send_email": [
+		{
+			"name": "EMAIL"
+		}
+	],
+	// Unlike hyperdrive/r2_buckets above, namespace_id here is an arbitrary
+	// positive integer you choose yourself — nothing to provision first, any
+	// unused number is fine as long as it's unique within your account.
+	"ratelimits": [
+		{
+			// Tight limiter for credential/OTP-guessing endpoints (login, register,
+			// forgot/verify/reset). Keyed by client IP + path in src/middlewares/rate-limit.ts.
+			"name": "AUTH_RATE_LIMITER",
+			"namespace_id": "1001",
+			"simple": { "limit": 5, "period": 60 }
+		},
+		{
+			// Broad limiter for every other route so a single leaked access token
+			// can't hammer the database unbounded. Keyed by user id (falls back to IP).
+			"name": "API_RATE_LIMITER",
+			"namespace_id": "1002",
+			"simple": { "limit": 120, "period": 60 }
+		}
+	]
+}

@@ -1,0 +1,57 @@
+# .dev.vars — loaded by `wrangler dev` (local Workers runtime).
+# Copy to `.dev.vars` and fill in. Never commit `.dev.vars`.
+#
+# Bindings (HYPERDRIVE, EMAIL, R2_BUCKET, AUTH_RATE_LIMITER, API_RATE_LIMITER)
+# come from wrangler.jsonc and are emulated locally — they are NOT set here.
+#
+# ── In production ──────────────────────────────────────────────────────────
+# Everything marked [secret] below MUST be set with `wrangler secret put NAME`
+# (encrypted, write-only). Everything marked [var] can be a plain `vars` entry
+# in wrangler.jsonc or also a secret. See "Deployment" in README.md.
+# ──────────────────────────────────────────────────────────────────────────
+
+# [var] "development" | "production"
+NODE_ENV=development
+# [var] pino level: fatal|error|warn|info|debug|trace|silent
+LOG_LEVEL=debug
+
+# [secret] Postgres connection string. Used locally and anywhere the
+# HYPERDRIVE binding is absent. In production Hyperdrive replaces this.
+DATABASE_URL=postgres://user:pass@localhost:5432/app
+
+# [secret] Ed25519 PEM keys, single line with literal \n. Generate with:
+#   bun run src/scripts/generate-jwt-keys.ts
+JWT_PRIVATE_KEY=
+JWT_PUBLIC_KEY=
+# [var] access-token lifetime, seconds
+JWT_EXPIRES_IN=900
+
+# [var] refresh-token lifetime, ms (default 7 days)
+REFRESH_TOKEN_TTL_MS=604800000
+# [var] SINGLE = one active session per user, MULTI = many
+AUTH_MODE=SINGLE
+# [var] password-reset OTP lifetime, ms (default 10 min)
+OTP_EXPIRES_IN_MS=600000
+
+# [var] Cloudflare account id (used to build the R2 S3 endpoint)
+CLOUDFLARE_ACCOUNT_ID=
+# [var] R2 bucket name (must match r2_buckets.bucket_name in wrangler.jsonc)
+R2_BUCKET_NAME=tally-cloud-backend
+# [secret] R2 API token pair for S3-compatible presigning
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+
+# [var] comma-separated allowed CORS origins, or * (no trailing slash)
+CORS_ORIGIN=http://localhost:3000
+
+# [var] Email branding — used by src/utility/email.ts / email-templates.ts for
+# the forgot-password OTP mail. Rebrand by changing these values, not the code.
+BRAND_NAME=Your App
+# Domain must be onboarded first: `wrangler email sending enable <domain>`
+EMAIL_FROM_ADDRESS=noreply@example.com
+# Public site the email's CTA/Privacy/Terms links point at, no trailing slash
+SITE_URL=https://example.com
+# Optional — omit to show a text wordmark (BRAND_NAME) instead of a logo image
+LOGO_URL=
+# Hex color for the OTP box border, links, and header accent rule
+BRAND_ACCENT_COLOR=#2563eb
