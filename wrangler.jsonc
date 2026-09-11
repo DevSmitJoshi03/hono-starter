@@ -5,6 +5,9 @@
 	"compatibility_date": "2026-04-15",
 	"compatibility_flags": ["nodejs_compat"],
 	"keep_vars": true,
+	"dev": {
+		"port": 9999
+	},
 	// Daily off-peak cleanup — deletes expired/stale rows from refresh_tokens
 	// and verifications (see src/scheduled/prune-stale-auth-records.ts). Time
 	// is arbitrary (03:07 UTC); avoiding :00 just dodges the top-of-hour rush

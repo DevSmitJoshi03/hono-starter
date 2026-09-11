@@ -12,6 +12,7 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "cross-env DB_MIGRATING=true tsx src/db/migrate.ts",
 		"create-admin": "tsx src/scripts/create-admin.ts",
+		"generate-jwt-keys": "tsx src/scripts/generate-jwt-keys.ts",
 		"typecheck": "tsc --noEmit",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
